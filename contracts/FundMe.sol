@@ -24,15 +24,19 @@ contract FundMe {
     //Owner
     address public immutable i_owner; //naming convention for immutable variable i_
 
-    constructor() {
+    //Creating an object of AggregatorV3 to pass address of different data feeds while converting
+    AggregatorV3Interface public priceFeed;
+
+    constructor(address priceFeedAddress) { //Here the priceFeedAddress depends upon the chain network on which the deployer of this contract is
         i_owner = msg.sender;
+        priceFeed = AggregatorV3Interface(priceFeedAddress); 
     }
 
     function fund() public payable {
         //Want to set a minimum fund amount in USD
         //1. How do we send ETH to this contract?
         require(
-            msg.value.getConversionRate() >= MINIMUM_USD,
+            msg.value.getConversionRate(priceFeed) >= MINIMUM_USD,
             "You have to atleast send 1 ETH"
         ); //to get the value of what user is sending , its global
         funders.push(msg.sender); //pushes the sendeers address to the funders stack
