@@ -5,20 +5,35 @@
 //WE WANT THE ONE WHO DEPLOY THIS CONTRACT BE THE OWNER OF THIS FUND ME
 
 // SPDX-License-Identifier: MIT
+
+//Pragma
 pragma solidity ^0.8.8;
 
+//Imports
 import "../contracts/PriceConverter.sol";
 
-error NotOwner(); //replacing require with this will save more gas
 
+//Error Codes
+//error contractName__ErrorName
+error FundMe__NotOwner(); //replacing require with this will save more gas, this is a custom error name
+
+//Interfaces, Libraries, Contracts
+// Doxygen style
+
+/**
+ * @title A contract for crowd funding
+ * @author Birat BC
+ * @notice This contract is to demo a sample funding contract
+ * @dev This implements priceFeeds as our library to get current price feed for eth/usd
+ */
 contract FundMe {
     //constant , immutable
     using PriceConverter for uint256; //using PriceConverter Library in this file and we can use all the functions inside PriceConverter Library takes uint256
 
     uint256 public constant MINIMUM_USD = 50 * 1e18; //this is in wei
 
+    //State Variables
     address[] public funders;
-
     mapping(address => uint256) public addressToAmountFunded; //creating a map[key value pair] to track the record of amount sent by funders with their name
 
     //Owner
@@ -26,11 +41,25 @@ contract FundMe {
 
     //Creating an object of AggregatorV3 to pass address of different data feeds while converting
     AggregatorV3Interface public priceFeed;
+    modifier onlyOwner() {
+        // require(msg.sender == i_owner, "Sender is not owner");
+        if (msg.sender != i_owner) {
+            revert FundMe__NotOwner();
+        }
 
-    constructor(address priceFeedAddress) { //Here the priceFeedAddress depends upon the chain network on which the deployer of this contract is
-        i_owner = msg.sender;
-        priceFeed = AggregatorV3Interface(priceFeedAddress); 
+        _; //its like next() or run the other code
     }
+
+    constructor(address priceFeedAddress) {
+        //Here the priceFeedAddress depends upon the chain network on which the deployer of this contract is
+        i_owner = msg.sender; //msg.sender contains the address of the deployment address of this contract
+        priceFeed = AggregatorV3Interface(priceFeedAddress); //get the price feeed  of the network in which this contract is deployed
+    }
+
+    /**
+     * @notice This function funds this contract
+     * @dev This implements price feed library which uses Price Converter library
+     */
 
     function fund() public payable {
         //Want to set a minimum fund amount in USD
@@ -74,27 +103,18 @@ contract FundMe {
         require(callSuccess, "call Failed");
     }
 
-    modifier onlyOwner() {
-        // require(msg.sender == i_owner, "Sender is not owner");
-        if (msg.sender != i_owner) {
-            revert NotOwner();
-        }
-        _; //its like next() or run the other code
-    }
-
     //WHAT HAPPENS IF SOMEONE  SENDS THIS CONTRACT ETH WITHOUT CALLING THE FUND FUNCTION WHICH CAN BE POSSIBLE
 
     //fallback()
     //receive()
 
-
-//if someone accidently sends us money without calling the fuind() function these two advance function will divert to call the funde function 
-//automatically 
-    receive() external payable { 
+    //if someone accidently sends us money without calling the fuind() function these two advance function will divert to call the funde function
+    //automatically
+    receive() external payable {
         fund();
     }
 
-    fallback() external payable { 
+    fallback() external payable {
         fund();
     }
 }

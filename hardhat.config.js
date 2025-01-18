@@ -16,11 +16,12 @@ module.exports = {
   solidity: "0.8.8",
   defaultNetwork: "hardhat",
   networks: {
-    holesky: {
-      url: HOLESKY_RPC_URL,
-      accounts: [PRIVATE_KEY],
-      chainId: 17000,
-    },
+    // holesky: {
+    //   url: HOLESKY_RPC_URL,
+    //   accounts: [PRIVATE_KEY],
+    //   chainId: 17000,
+    //   blockConfirmations: 6 //number of block to be confirmed for deployment
+    // },
     sepolia: {
       url: SEPOLIA_RPC_URL,
       accounts: [PRIVATE_KEY],
@@ -40,8 +41,8 @@ module.exports = {
     deployer : {
       default : 0, //network : deployer account in the above array of accounts
     },
-    users : {
-      default : 0
-    }
+    // users : {
+    //   default : 0
+    // }
   }
 };
