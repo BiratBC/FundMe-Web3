@@ -100,9 +100,11 @@ describe("FundMe", function () {
       );
     });
     it("allows us to withdraw with multiple funders", async () => {
-      const accounts = await ethers.getSigner();
+      const accounts = await ethers.getSigners();
+      console.log(`Accounts : ${accounts}`);
+
       for (let index = 0; index < 6; index++) {
-        const fundMeConnectedContract = await fundMe.connect(accounts[i]);
+        const fundMeConnectedContract = await fundMe.connect(accounts[index]);
         await fundMeConnectedContract.fund({ value: sendValue });
       }
       const startingFundMeBalance = await ethers.provider.getBalance(
@@ -118,7 +120,8 @@ describe("FundMe", function () {
       const transactionReceipt = await transactionResponse.wait(1);
       const { gasUsed, gasPrice } = transactionReceipt;
       const gasCost = gasUsed * gasPrice;
-
+      console.log(`Gas Used : ${gasUsed}`);
+      console.log(`Gas Used : ${gasPrice}`);
 
       const endingFundMeBalance = await ethers.provider.getBalance(
         fundMe.target
@@ -130,9 +133,27 @@ describe("FundMe", function () {
         startingDeployerBalance + startingFundMeBalance, //starting fundMe balance is transferred to starting deployer balance
         endingDeployerBalance + gasCost
       );
-      
 
       //Make sure that the funders are reset properly
+
+      await expect(fundMe.funders(0)).to.be.reverted;
+
+      for (let index = 1; index < 6; index++) {
+        assert.equal(
+          await fundMe.addressToAmountFunded(accounts[index].address),
+          0
+        );
+      }
+
+
+      //only allows owner to withdraw
+      it("only allows owner to withdraw", async () => {
+        const accounts = await ethers.getSigners();
+        //const attacker = accounts[1]; //this means when other account tries to withdraw the function call gets reverted
+        const fundMeConnectedContract = await fundMe.connect(accounts[1]);
+        await expect(fundMeConnectedContract.withdraw()).to.be.revertedWith("FundMe__NotOwner");
+      })
+
     });
   });
 });

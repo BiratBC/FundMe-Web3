@@ -32,7 +32,7 @@ contract FundMe {
 
     uint256 public constant MINIMUM_USD = 50 * 1e18; //this is in wei
 
-    //State Variables
+    //State Variables -> these state or storage variables are stored in Storage as a large list of array
     address[] public funders;
     mapping(address => uint256) public addressToAmountFunded; //creating a map[key value pair] to track the record of amount sent by funders with their name
 
